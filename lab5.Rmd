@@ -1,0 +1,358 @@
+---
+title: "Lab 5: Math 4753"
+author: "Lucia Nguyen"
+date: "2026-09-28"
+output: 
+  html_document:
+    toc: yes
+    toc_float: yes
+    theme: spacelab
+    highlight: pygments
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# Tasks
+## Task 1
+
+- WD
+
+```{r}
+getwd()
+```
+
+## Task 2
+
+- Make a new file called mylab5.R and place in it all the code needed for this lab
+
+I made mylab5.R in my LAB5 folder and copied the code from lab5.R into it.
+
+- Use # to write my own comments explaining what the code does
+
+```{r}
+# set a seed so the results are the same every time I knit
+set.seed(4753)
+
+# iter = number of experiments, n = trials per experiment, p = prob of success
+mybin = function(iter = 100, n = 10, p = 0.5) {
+  # empty matrix to hold the samples, one column per experiment
+  sam.mat = matrix(NA, nr = n, nc = iter, byrow = TRUE)
+  # empty vector to store the number of successes in each experiment
+  succ = c()
+  for (i in 1:iter) {
+    # one experiment: n trials, 1 = success (prob p), 0 = failure
+    sam.mat[, i] = sample(c(1, 0), n, replace = TRUE, prob = c(p, 1 - p))
+    # add up the 1s to get the number of successes
+    succ[i] = sum(sam.mat[, i])
+  }
+  # table of how many times each value 0 to n happened
+  succ.tab = table(factor(succ, levels = 0:n))
+  # colored barplot of the proportions
+  barplot(succ.tab / iter, col = rainbow(n + 1),
+          main = paste("Binomial simulation, iter =", iter),
+          xlab = "Number of successes (Y)", ylab = "Proportion")
+  # return the proportions
+  succ.tab / iter
+}
+```
+
+- Using mybin(), simulate a binomial experiment where n = 10, p = 0.7, and Y = number of successes
+
+- Record the plots for each of the following (use color)
+
+- 100 iterations
+
+```{r}
+# 100 experiments of n = 10 trials, p = 0.7
+mybin(iter = 100, n = 10, p = 0.7)
+```
+
+- 200 iterations
+
+```{r}
+# 200 experiments
+mybin(iter = 200, n = 10, p = 0.7)
+```
+
+- 500 iterations
+
+```{r}
+# 500 experiments
+mybin(iter = 500, n = 10, p = 0.7)
+```
+
+- 1000 iterations
+
+```{r}
+# 1000 experiments
+mybin(iter = 1000, n = 10, p = 0.7)
+```
+
+- 10,000 iterations
+
+```{r}
+# 10,000 experiments, saved to compare with dbinom()
+sim10k = mybin(iter = 10000, n = 10, p = 0.7)
+```
+
+As the iterations go up, the barplot gets smoother and closer to the true binomial shape, peaking at 7 successes since np = 10(0.7) = 7.
+
+- For the last simulation (10,000 iterations) copy and paste the table produced from the function
+
+```{r}
+# table of proportions from the 10,000 iteration simulation
+sim10k
+```
+
+- Verify that each value in the table is approximately correct using dbinom()
+
+```{r}
+# exact probabilities P(Y = y) for y = 0 to 10
+theory = dbinom(0:10, size = 10, prob = 0.7)
+
+# simulated vs exact side by side
+compare = data.frame(y = 0:10,
+                     simulated = as.numeric(sim10k),
+                     dbinom = round(theory, 4),
+                     difference = round(as.numeric(sim10k) - theory, 4))
+compare
+```
+
+All the differences are really small (under about 0.005), so the simulated values are approximately correct.
+
+
+## Task 3
+
+- Suppose there is a bag of 20 marbles, 12 white ("1") and 8 black ("0"). Using sample() create a sample of size n = 5 without replacement
+
+```{r}
+# bag of 20 marbles: 12 whites (1) and 8 blacks (0)
+bag = rep(c(1, 0), c(12, 8))
+bag
+
+# sample 5 marbles without replacement (a marble can't be picked twice)
+sample(bag, size = 5, replace = FALSE)
+```
+
+- Now do the same with replace = TRUE
+
+```{r}
+# sample 5 marbles with replacement (put each marble back after picking it)
+sample(bag, size = 5, replace = TRUE)
+```
+
+- Use the function myhyper(), Y = number of whites, sampling without replacement, n = 5
+
+```{r}
+# iter = number of experiments, N = total marbles, r = number of whites, n = sample size
+myhyper = function(iter = 100, N = 20, r = 12, n = 5) {
+  # empty matrix to hold the samples, one column per experiment
+  sam.mat = matrix(NA, nr = n, nc = iter, byrow = TRUE)
+  # empty vector to store the number of whites in each experiment
+  succ = c()
+  for (i in 1:iter) {
+    # draw n marbles WITHOUT replacement from r whites (1) and N - r blacks (0)
+    sam.mat[, i] = sample(rep(c(1, 0), c(r, N - r)), n, replace = FALSE)
+    # add up the 1s to get the number of whites
+    succ[i] = sum(sam.mat[, i])
+  }
+  # table of how many times each value 0 to n happened
+  succ.tab = table(factor(succ, levels = 0:n))
+  # colored barplot of the proportions
+  barplot(succ.tab / iter, col = rainbow(n + 1),
+          main = paste("Hypergeometric simulation, iter =", iter),
+          xlab = "Number of whites (Y)", ylab = "Proportion")
+  # return the proportions
+  succ.tab / iter
+}
+```
+
+- 100 iterations
+
+```{r}
+# 100 experiments
+myhyper(iter = 100, N = 20, r = 12, n = 5)
+```
+
+- 200 iterations
+
+```{r}
+# 200 experiments
+myhyper(iter = 200, N = 20, r = 12, n = 5)
+```
+
+- 500 iterations
+
+```{r}
+# 500 experiments
+myhyper(iter = 500, N = 20, r = 12, n = 5)
+```
+
+- 1000 iterations
+
+```{r}
+# 1000 experiments
+myhyper(iter = 1000, N = 20, r = 12, n = 5)
+```
+
+- 10,000 iterations
+
+```{r}
+# 10,000 experiments, saved to compare with dhyper()
+hyp10k = myhyper(iter = 10000, N = 20, r = 12, n = 5)
+```
+
+As the iterations go up, the barplot settles into the hypergeometric shape, with 3 whites the most common since the expected value is n(r/N) = 5(12/20) = 3.
+
+- For the last simulation (10,000 iterations) copy and paste the table produced from the function
+
+```{r}
+# table of proportions from the 10,000 iteration simulation
+hyp10k
+```
+
+- Verify that each value in the table is approximately correct using dhyper()
+
+```{r}
+# dhyper(x, m, n, k): x = whites drawn, m = whites in bag, n = blacks in bag, k = sample size
+theory = dhyper(0:5, m = 12, n = 8, k = 5)
+
+# simulated vs exact side by side
+compare.hyp = data.frame(y = 0:5,
+                         simulated = as.numeric(hyp10k),
+                         dhyper = round(theory, 4),
+                         difference = round(as.numeric(hyp10k) - theory, 4))
+compare.hyp
+```
+
+All the differences are really small, so the simulated values are approximately correct.
+
+
+## Task 4
+
+- In lab5.r there is a function called mysample(). Look at the code and describe what you think it should do
+
+```{r}
+# n = sample size, iter = how many samples to make, time = seconds to pause between plots
+mysample = function(n, iter = 10, time = 0.5) {
+  for (i in 1:iter) {
+    # make a sample of size n from the numbers 1 to 10, with replacement
+    s = sample(1:10, n, replace = TRUE)
+    # turn the sample into a factor so all 10 values show up in the table
+    sf = factor(s, levels = 1:10)
+    # colored barplot of the proportion of each number 1 to 10
+    barplot(table(sf) / n, beside = TRUE, col = rainbow(10),
+            main = paste("Example sample()", " iteration ", i, " n= ", n, sep = ""),
+            ylim = c(0, 0.2))
+    # pause so each plot stays on screen for a bit before the next one
+    Sys.sleep(time)
+  }
+}
+```
+
+I think this function takes a sample of size n from the numbers 1 to 10 with replacement, where every number is equally likely, and makes a colored barplot of the proportions. It does this iter times and pauses between each plot, so it should look like a little animation of the barplot changing each time. Since each number has probability 1/10, I expect every bar to be close to 0.1.
+
+- Run the function with mysample(n = 1000, iter = 30, time = 1)
+
+```{r, fig.keep='last'}
+# 30 samples of size 1000, pausing 1 second between each plot
+mysample(n = 1000, iter = 30, time = 1)
+```
+
+- Describe what you see
+
+The barplot redraws 30 times, one per second. Each time, all 10 bars are around 0.1 but they wiggle a little up and down because every sample is random. None of the bars stay the highest or lowest across iterations, which shows the distribution is uniform and the small differences are just random sampling variation. With n = 1000 the bars stay pretty close to 0.1, so the proportions are a good estimate of the true probability 1/10.
+
+- Make sure the plot appears in your document (only one of the 30 iterations)
+
+The plot above shows the last iteration (iteration 30).
+
+
+## Task 5
+
+- Use R to calculate $\binom{8}{4}$
+
+```{r}
+# number of ways to choose 4 things out of 8
+choose(8, 4)
+```
+
+$\binom{8}{4} = 70$
+
+- $P(Y > 4)$, $Y \sim Pois(\lambda = 2)$
+
+```{r}
+# P(Y > 4) = 1 - P(Y <= 4), ppois gives the cumulative P(Y <= 4)
+1 - ppois(4, lambda = 2)
+```
+
+$P(Y > 4) \approx 0.0527$
+
+- $P(Y = 10)$, $Y \sim NegBin(p = 0.4, r = 3)$
+
+```{r}
+# in the book, Y = trial number of the r-th success
+# R's dnbinom counts FAILURES before the r-th success, so x = y - r = 10 - 3 = 7
+dnbinom(7, size = 3, prob = 0.4)
+
+# check with the book formula: choose(y-1, r-1) * p^r * (1-p)^(y-r)
+mynbin = function(y, r, p) {
+  choose(y - 1, r - 1) * p^r * (1 - p)^(y - r)
+}
+mynbin(10, 3, 0.4)
+```
+
+Both ways give $P(Y = 10) \approx 0.0645$
+
+- $P(Y \le 8)$, $Y \sim Bin(n = 15, p = 0.4)$
+
+```{r}
+# pbinom gives the cumulative probability P(Y <= 8)
+pbinom(8, size = 15, prob = 0.4)
+```
+
+$P(Y \le 8) \approx 0.9050$
+
+## Task 6
+
+- Create 2 R functions by copying code from this lab
+
+I made `simband()` from `mybin()`/`myhyper()` and `fpcrule()` from `myhyper()` and the marble sampling in Task 3. Both are in my package MATH4753LABSLUCIAF26 with the datasets `marbles` and `lab5sims`.
+
+- Improve them by thinking about what objects would be useful for the statistician (plots and tables)
+
+Both functions return an S3 object with a `print` method (clean summary table) and a `plot` method (two panel plot).
+
+- Invoke both functions using the package
+
+```{r, fig.width=10, fig.height=4}
+# simband(): simultaneous bands and convergence check for the Task 2 simulation
+sb = MATH4753LABSLUCIAF26::simband(MATH4753LABSLUCIAF26::lab5sims$binom,
+                                   pmf = function(k) dbinom(k, 10, 0.7),
+                                   support = 0:10)
+sb
+```
+
+```{r, fig.width=10, fig.height=4}
+# fpcrule(): exact safe sample size for the binomial approximation, marble bag from Task 3
+fr = MATH4753LABSLUCIAF26::fpcrule(MATH4753LABSLUCIAF26::marbles$color,
+                                   success = "white", eps = 0.05, n = 5)
+fr
+```
+
+- Say in what ways each function is new
+
+simband(): In the lab we compared the simulation to dbinom() by eye. simband() puts simultaneous (Bonferroni adjusted) Wilson confidence bands on every bar, so I can formally check if every exact probability is consistent with the simulation at the same time. It also tracks the total variation distance as the iterations grow and compares it to the expected distance, 0.5 Σ sqrt(2p(1 − p)/(π·iter)), which shows the 1/sqrt(iter) convergence rate on a log scale. It also works backwards to tell me how many iterations I need for every bar to be within a chosen margin of error.
+
+fpcrule(): Instead of the textbook rule of thumb (n/N ≤ 0.05), it computes the exact total variation distance between the hypergeometric and binomial for every sample size of my actual population, and finds the largest n where the binomial is still within a tolerance. For the marbles, the 5% rule only allows n = 1, but the exact answer is n = 3 for a tolerance of 0.05. At n = 5 the hypergeometric variance is only about 79% of the binomial's because of the finite population correction.
+
+- Say in what ways each function is useful
+
+simband(): It answers "how many iterations is enough?" with a number instead of a guess. For Task 2, all 11 exact probabilities were inside their bands, the TV distance was 0.0068 (expected about 0.0096), and I'd need about 15,753 iterations for every bar to be within ±0.01. It works for any discrete distribution by passing in the pmf.
+
+fpcrule(): It tells a statistician when it's safe to treat sampling without replacement as binomial for their own population, which matters for small populations like quality control lots or surveys. The table and plot show exactly where and by how much the two distributions differ.
+
+- Document the functions using roxygen, package data, create the vignette Lab5, install and restart
+
+Both functions have full roxygen2 documentation (title, description, params, return, export, working examples). The datasets are in /data and documented, and the vignette Lab5 demonstrates both functions using the packaged data. I installed the package with Install and Restart.
